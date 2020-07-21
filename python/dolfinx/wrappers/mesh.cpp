@@ -25,11 +25,37 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <variant>
 
 namespace py = pybind11;
 
 namespace dolfinx_wrappers
 {
+
+class MyMeshTags
+{
+public:
+  template <typename T>
+  MyMeshTags(dolfinx::mesh::MeshTags<T> w_in) : w(w_in)
+  {
+  }
+
+  template <typename T>
+  MyMeshTags(const std::shared_ptr<const dolfinx::mesh::Mesh>& mesh, int dim,
+             const py::array_t<std::int32_t>& indices,
+             const py::array_t<T>& values)
+      : w(dolfinx::mesh::MeshTags<T>(
+          mesh, dim,
+          std::vector<int>(indices.data(), indices.data() + indices.size()),
+          std::vector<T>(values.data(), values.data() + values.size())))
+  {
+  }
+
+  std::variant<dolfinx::mesh::MeshTags<std::int32_t>,
+               dolfinx::mesh::MeshTags<std::int64_t>,
+               dolfinx::mesh::MeshTags<double>>
+      w;
+};
 
 template <typename T>
 void declare_meshtags(py::module& m, std::string type)
@@ -129,6 +155,21 @@ void mesh(py::module& m)
       .value("none", dolfinx::mesh::GhostMode::none)
       .value("shared_facet", dolfinx::mesh::GhostMode::shared_facet)
       .value("shared_vertex", dolfinx::mesh::GhostMode::shared_vertex);
+
+  py::class_<MyMeshTags>(m, "MyMeshTags", "MyMeshTags object")
+      .def(py::init<dolfinx::mesh::MeshTags<double>>())
+      .def(py::init<dolfinx::mesh::MeshTags<std::int32_t>>())
+      .def(py::init<dolfinx::mesh::MeshTags<std::int64_t>>())
+      .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
+                    const py::array_t<std::int32_t>&,
+                    const py::array_t<double>&>())
+      .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
+                    const py::array_t<std::int32_t>&,
+                    const py::array_t<std::int32_t>&>())
+      .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
+                    const py::array_t<std::int32_t>&,
+                    const py::array_t<std::int64_t>&>())
+      .def_readonly("tags", &MyMeshTags::w);
 
   // dolfinx::mesh::Geometry class
   py::class_<dolfinx::mesh::Geometry, std::shared_ptr<dolfinx::mesh::Geometry>>(
