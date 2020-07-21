@@ -42,6 +42,16 @@ public:
 
   template <typename T>
   MyMeshTags(const std::shared_ptr<const dolfinx::mesh::Mesh>& mesh, int dim,
+             const py::array_t<std::int32_t>& indices, T value)
+      : w(dolfinx::mesh::MeshTags<T>(
+          mesh, dim,
+          std::vector<int>(indices.data(), indices.data() + indices.size()),
+          std::vector<T>(indices.size(), value)))
+  {
+  }
+
+  template <typename T>
+  MyMeshTags(const std::shared_ptr<const dolfinx::mesh::Mesh>& mesh, int dim,
              const py::array_t<std::int32_t>& indices,
              const py::array_t<T>& values)
       : w(dolfinx::mesh::MeshTags<T>(
@@ -153,6 +163,8 @@ void mesh(py::module& m)
       .def(py::init<dolfinx::mesh::MeshTags<std::int8_t>>())
       .def(py::init<dolfinx::mesh::MeshTags<std::int32_t>>())
       .def(py::init<dolfinx::mesh::MeshTags<std::int64_t>>())
+      .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
+                    const py::array_t<std::int32_t>&, std::int32_t>())
       .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
                     const py::array_t<std::int32_t>&,
                     const py::array_t<double>&>())
