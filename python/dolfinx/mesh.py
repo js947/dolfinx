@@ -129,7 +129,7 @@ class MeshTags(MyMeshTags):
         self.indices = self.tags.indices
         self.dtype = self.values.dtype
         self.dim = self.tags.dim
-    
+
     @property
     def name(self):
         return self.tags.name
