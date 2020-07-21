@@ -9,7 +9,7 @@ import types
 import numpy
 import ufl
 from dolfinx import cpp, fem
-from dolfinx.cpp.mesh import create_meshtags, MyMeshTags
+from dolfinx.cpp.mesh import MyMeshTags
 
 __all__ = [
     "locate_entities", "locate_entities_boundary", "refine", "create_mesh", "create_meshtags"
@@ -138,6 +138,9 @@ class MeshTags(MyMeshTags):
     def name(self, val):
         self.tags.name = val
 
+
+def create_meshtags(*args):
+    return MeshTags(cpp.mesh.create_meshtags(*args))
 
 # Functions to extend cpp.mesh.Mesh with
 

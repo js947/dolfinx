@@ -51,7 +51,8 @@ public:
   {
   }
 
-  std::variant<dolfinx::mesh::MeshTags<std::int32_t>,
+  std::variant<dolfinx::mesh::MeshTags<std::int8_t>,
+               dolfinx::mesh::MeshTags<std::int32_t>,
                dolfinx::mesh::MeshTags<std::int64_t>,
                dolfinx::mesh::MeshTags<double>>
       w;
@@ -64,15 +65,6 @@ void declare_meshtags(py::module& m, std::string type)
   py::class_<dolfinx::mesh::MeshTags<T>,
              std::shared_ptr<dolfinx::mesh::MeshTags<T>>>(
       m, pyclass_name.c_str(), "MeshTags object")
-      .def(py::init([](const std::shared_ptr<const dolfinx::mesh::Mesh>& mesh,
-                       int dim, const py::array_t<std::int32_t>& indices,
-                       const py::array_t<T>& values) {
-        std::vector<std::int32_t> indices_vec(indices.data(),
-                                              indices.data() + indices.size());
-        std::vector<T> values_vec(values.data(), values.data() + values.size());
-        return std::make_unique<dolfinx::mesh::MeshTags<T>>(
-            mesh, dim, std::move(indices_vec), std::move(values_vec));
-      }))
       .def_readwrite("name", &dolfinx::mesh::MeshTags<T>::name)
       .def_property_readonly("dim", &dolfinx::mesh::MeshTags<T>::dim)
       .def_property_readonly("mesh", &dolfinx::mesh::MeshTags<T>::mesh)
@@ -158,11 +150,15 @@ void mesh(py::module& m)
 
   py::class_<MyMeshTags>(m, "MyMeshTags", "MyMeshTags object")
       .def(py::init<dolfinx::mesh::MeshTags<double>>())
+      .def(py::init<dolfinx::mesh::MeshTags<std::int8_t>>())
       .def(py::init<dolfinx::mesh::MeshTags<std::int32_t>>())
       .def(py::init<dolfinx::mesh::MeshTags<std::int64_t>>())
       .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
                     const py::array_t<std::int32_t>&,
                     const py::array_t<double>&>())
+      .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
+                    const py::array_t<std::int32_t>&,
+                    const py::array_t<std::int8_t>&>())
       .def(py::init<const std::shared_ptr<const dolfinx::mesh::Mesh>&, int,
                     const py::array_t<std::int32_t>&,
                     const py::array_t<std::int32_t>&>())
