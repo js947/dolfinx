@@ -9,6 +9,7 @@
 
 import ufl
 from dolfinx import cpp, fem
+from dolfinx.mesh import MeshTags
 
 
 class VTKFile:
@@ -41,6 +42,13 @@ class XDMFFile(cpp.io.XDMFFile):
     def write_function(self, u, t=0.0, mesh_xpath="/Xdmf/Domain/Grid[@GridType='Uniform'][1]"):
         u_cpp = getattr(u, "_cpp_object", u)
         super().write_function(u_cpp, t, mesh_xpath)
+
+    def write_meshtags(self, mt, *args, **kwargs):
+        super().write_meshtags(mt.tags, *args, **kwargs)
+
+    def read_meshtags(self, *args, **kwargs):
+        mt = super().read_meshtags(*args, **kwargs)
+        return MeshTags(mt)
 
     def read_mesh(self, ghost_mode=cpp.mesh.GhostMode.shared_facet, name="mesh", xpath="/Xdmf/Domain"):
         # Read mesh data from file

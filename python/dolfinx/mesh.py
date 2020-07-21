@@ -9,7 +9,7 @@ import types
 import numpy
 import ufl
 from dolfinx import cpp, fem
-from dolfinx.cpp.mesh import create_meshtags
+from dolfinx.cpp.mesh import create_meshtags, MyMeshTags
 
 __all__ = [
     "locate_entities", "locate_entities_boundary", "refine", "create_mesh", "create_meshtags"
@@ -121,19 +121,22 @@ def Mesh(comm, cell_type, x, cells, ghosts, degree=1, ghost_mode=cpp.mesh.GhostM
     return create_mesh(comm, cells, x, domain, ghost_mode)
 
 
-def MeshTags(mesh, dim, indices, values):
+class MeshTags(MyMeshTags):
 
-    if isinstance(values, int):
-        values = numpy.full(indices.shape, values, dtype=numpy.int32)
-    elif isinstance(values, float):
-        values = numpy.full(indices.shape, values, dtype=numpy.double)
+    def __init__(self, *args):
+        MyMeshTags.__init__(self, *args)
+        self.values = self.tags.values
+        self.indices = self.tags.indices
+        self.dtype = self.values.dtype
+        self.dim = self.tags.dim
+    
+    @property
+    def name(self):
+        return self.tags.name
 
-    dtype = values.dtype.type
-    if dtype not in _meshtags_types.keys():
-        raise KeyError("Datatype {} of values array not recognised".format(dtype))
-
-    fn = _meshtags_types[dtype]
-    return fn(mesh, dim, indices, values)
+    @name.setter
+    def name(self, val):
+        self.tags.name = val
 
 
 # Functions to extend cpp.mesh.Mesh with
