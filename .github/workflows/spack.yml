@@ -1,0 +1,55 @@
+name: Test spack build
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get spack
+        uses: actions/checkout@v2
+        with:
+          path: ./spack
+          repository: js947/spack
+          ref: add-fenics-x
+
+      - name: Build dependencies
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack setup dolfinx@local
+
+      - name: Build dolfinx
+        run: |
+          source spack/share/spack/setup-env.sh
+          ./spconfig -G Ninja -S cpp
+          cmake --build .
+
+      - name: Build and run unit tests
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack load -r dolfinx@local
+          cmake -G Ninja -S test/unit -S test/unit
+          cmake --build test/unit
+
+          cd test/unit
+          ctest --output-on-failure -R unittests
+          mpiexec -np 2 ctest --output-on-failure -R unittests
+
+      - name: Build and run demos
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack load -r dolfinx@local
+          cmake -G Ninja -S demo -S demo
+          cmake --build demo
+
+          cd demo
+          ctest -R demo -R serial
+          ctest -R demo -R mpi_2
