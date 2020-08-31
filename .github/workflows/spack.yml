@@ -21,35 +21,13 @@ jobs:
           repository: spack/spack
           ref: develop
 
-      - name: Build dependencies
+      - name: Setup E4S mirror
         run: |
           source spack/share/spack/setup-env.sh
-          spack setup fenics-dolfinx@local
+          spack mirror add E4S https://cache.e4s.io
+          spack buildcache keys -it
 
       - name: Build dolfinx
         run: |
           source spack/share/spack/setup-env.sh
-          ./spconfig.py -G Ninja -S cpp
-          cmake --build .
-
-      - name: Build and run unit tests
-        run: |
-          source spack/share/spack/setup-env.sh
-          spack load -r fenics-dolfinx@local
-          cmake -G Ninja -S test/unit -S test/unit
-          cmake --build test/unit
-
-          cd test/unit
-          ctest --output-on-failure -R unittests
-          mpiexec -np 2 ctest --output-on-failure -R unittests
-
-      - name: Build and run demos
-        run: |
-          source spack/share/spack/setup-env.sh
-          spack load -r fenics-dolfinx@local
-          cmake -G Ninja -S demo -S demo
-          cmake --build demo
-
-          cd demo
-          ctest -R demo -R serial
-          ctest -R demo -R mpi_2
+          spack install py-fenics-dolfinx@master target=x86_64
