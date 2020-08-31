@@ -24,7 +24,7 @@ jobs:
       - name: Build dependencies
         run: |
           source spack/share/spack/setup-env.sh
-          spack setup dolfinx@local
+          spack setup fenics-dolfinx@local
 
       - name: Build dolfinx
         run: |
@@ -35,7 +35,7 @@ jobs:
       - name: Build and run unit tests
         run: |
           source spack/share/spack/setup-env.sh
-          spack load -r dolfinx@local
+          spack load -r fenics-dolfinx@local
           cmake -G Ninja -S test/unit -S test/unit
           cmake --build test/unit
 
@@ -46,7 +46,7 @@ jobs:
       - name: Build and run demos
         run: |
           source spack/share/spack/setup-env.sh
-          spack load -r dolfinx@local
+          spack load -r fenics-dolfinx@local
           cmake -G Ninja -S demo -S demo
           cmake --build demo
 
